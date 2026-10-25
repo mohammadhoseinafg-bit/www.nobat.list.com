@@ -23,7 +23,7 @@ h1{font-size:1.6rem;line-height:1.4;margin:0 0 4px}
 section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
 h2{font-size:1.1rem;margin:0 0 8px}
 label{display:block;font-weight:700;margin:12px 0 4px}
-input{font:inherit;width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+input,textarea,select{font:inherit;width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 .hint{color:var(--mute);font-size:.9rem;margin:4px 0 0}
 .err{color:var(--err);min-height:1.8em;margin:8px 0 0}
 .go{font:inherit;font-weight:700;width:100%;margin-top:6px;padding:13px;border:0;border-radius:10px;background:var(--pri);color:var(--on);cursor:pointer}
@@ -40,17 +40,23 @@ th{color:var(--mute);font-weight:400}
 .opt[aria-pressed=true]{background:var(--pri);border-color:var(--pri);color:var(--on);font-weight:700}
 .opt:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
 .tabs.sub .tab{padding:9px 6px;font-size:.95rem}
+.flag{width:38px;height:auto;border-radius:3px;box-shadow:0 0 0 1px var(--line);vertical-align:middle;flex:none}
+.ttl{display:flex;align-items:center;gap:10px;margin:0 0 4px}.ttl h1{margin:0}
+.lk{list-style:none;margin:0;padding:0}.lk li{padding:9px 0;border-bottom:1px solid var(--line)}.lk li:last-child{border:0}
+.lk a{color:var(--pri);font-weight:700;text-decoration:none}.lk a:hover,.lk a:focus-visible{text-decoration:underline}.lk span{display:block;color:var(--mute);font-size:.9rem}
 </style>
 </head>
 <body>
 <main>
-<h1>لیست نوبت مستقل دانشجویان</h1>
+<div class="ttl"><svg class="flag" viewBox="0 0 1200 800" role="img" aria-label="پرچم ترکیه" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="800" fill="#E30A17"/><circle cx="425" cy="400" r="200" fill="#fff"/><circle cx="475" cy="400" r="160" fill="#E30A17"/><polygon fill="#fff" points="683.3,400.0 614.2,377.5 614.2,304.9 571.5,363.7 502.4,341.2 545.1,400.0 502.4,458.8 571.5,436.3 614.2,495.1 614.2,422.5"/></svg><h1>لیست نوبت مستقل دانشجویان</h1></div>
 <p class="lead">برای مراجعه به سفارت ترکیه در تهران، بدون ایستادن در صف حضوری</p>
 <div class="note"><b>درباره‌ی این سایت:</b> این یک لیست نوبت مستقل و کاملاً رایگان است که برای منظم‌کردن ترتیب مراجعه‌ی دانشجوها به سفارت ترکیه ساخته شده. سایت وابسته به سفارت یا نهاد دولتی نیست و هیچ هزینه‌ای از شما نمی‌گیرد. فقط ترتیب مراجعه را مشخص می‌کند.</div>
 
 <div class="tabs" role="tablist">
 <button class="tab" role="tab" id="t1" aria-selected="true">ثبت‌نام</button>
 <button class="tab" role="tab" id="t2" aria-selected="false">لیست‌ها</button>
+<button class="tab" role="tab" id="t3" aria-selected="false">پیگیری</button>
+<button class="tab" role="tab" id="t4" aria-selected="false">شفافیت</button>
 </div>
 
 <div id="p1">
@@ -86,10 +92,51 @@ th{color:var(--mute);font-weight:400}
 <section>
 <h2 id="lt">لیست تحصیلی</h2>
 <p class="hint" style="margin:0 0 8px">نام‌ها برای حفظ حریم خصوصی کوتاه شده‌اند.</p>
-<div class="wrap"><table><thead><tr id="th"><th>نوبت</th><th>نام</th><th>تاریخ پذیرش</th></tr></thead><tbody id="rows"></tbody></table></div>
+<p class="hint" id="st" style="margin:0 0 8px"></p>
+<div class="wrap"><table><thead><tr id="th"><th>نوبت</th><th>نام</th><th>تاریخ پذیرش</th><th>زمان ثبت‌نام</th></tr></thead><tbody id="rows"></tbody></table></div>
 <p class="hint" id="empty" hidden></p>
 </section>
 </div>
+<div id="p3" hidden>
+<section>
+<h2>پیگیری وضعیت</h2>
+<label for="tc">کد پیگیری</label><input id="tc" dir="ltr" autocomplete="off" style="text-align:right">
+<label for="tp">۴ رقم آخر شماره موبایل</label><input id="tp" inputmode="numeric" maxlength="4" dir="ltr" style="text-align:right">
+<p class="err" id="te" role="alert"></p>
+<button class="go" id="tg">نمایش وضعیت</button>
+<p id="tr" style="margin:12px 0 0;font-weight:700"></p>
+<div id="tm"></div>
+</section>
+</div>
+<div id="p4" hidden>
+<section id="pms" hidden><h2>پرسش‌ها و پاسخ‌ها</h2><div id="pml"></div></section>
+<section>
+<h2>ارسال پیشنهاد یا اعتراض</h2>
+<label for="mk">نوع پیام</label>
+<select id="mk"><option value="suggestion">پیشنهاد</option><option value="objection">اعتراض به ثبت‌نام من</option></select>
+<div id="mo" hidden>
+<label for="mc">کد پیگیری</label><input id="mc" dir="ltr" autocomplete="off" style="text-align:right">
+<label for="m4">۴ رقم آخر شماره موبایل</label><input id="m4" inputmode="numeric" maxlength="4" dir="ltr" style="text-align:right">
+</div>
+<label for="mb">متن پیام</label><textarea id="mb" rows="4" maxlength="1000"></textarea>
+<p class="err" id="me" role="alert"></p>
+<button class="go" id="ms">ارسال</button>
+</section>
+</div>
+<section>
+<h2>لینک‌های مفید درباره‌ی ترکیه</h2>
+<ul class="lk">
+<li><a href="https://www.evisa.gov.tr" target="_blank" rel="noopener noreferrer">ویزای الکترونیکی ترکیه (e-Visa)</a><span>سایت رسمی درخواست ویزای الکترونیکی</span></li>
+<li><a href="https://www.mfa.gov.tr" target="_blank" rel="noopener noreferrer">وزارت امور خارجه ترکیه</a><span>اخبار و اطلاعات کنسولی و ویزا</span></li>
+<li><a href="https://www.studyinturkiye.gov.tr" target="_blank" rel="noopener noreferrer">Study in Türkiye</a><span>راهنمای رسمی تحصیل در ترکیه (شورای آموزش عالی)</span></li>
+<li><a href="https://turkiyeburslari.gov.tr" target="_blank" rel="noopener noreferrer">بورس دولت ترکیه (Türkiye Bursları)</a><span>شرایط و زمان ثبت‌نام بورسیه</span></li>
+<li><a href="https://www.goc.gov.tr" target="_blank" rel="noopener noreferrer">اداره‌ی مهاجرت ترکیه</a><span>اطلاعات اقامت و مهاجرت</span></li>
+<li><a href="https://e-ikamet.goc.gov.tr" target="_blank" rel="noopener noreferrer">درخواست اقامت (e-İkamet)</a><span>سامانه‌ی ثبت درخواست اقامت</span></li>
+<li><a href="https://www.osym.gov.tr" target="_blank" rel="noopener noreferrer">ÖSYM</a><span>مرکز آزمون‌های ترکیه (از جمله آزمون YÖS)</span></li>
+<li><a href="https://www.yok.gov.tr" target="_blank" rel="noopener noreferrer">YÖK</a><span>شورای آموزش عالی ترکیه</span></li>
+</ul>
+<p class="hint">این لینک‌ها به سایت‌های رسمی دولت ترکیه (با پسوند gov.tr) می‌رود. سفارت ترکیه هشدار داده سایت‌های غیررسمی برای ویزا هزینه‌ی اضافه می‌گیرند. این سایت مسئول محتوای سایت‌های دیگر نیست.</p>
+</section>
 </main>
 <script>
 var U="https://yfcllnwygkmjfnuaoyem.supabase.co",K="sb_publishable_iE4H_nQM0HodX6V0sq0gGQ_bumpe2HJ";
@@ -97,24 +144,26 @@ var $=function(i){return document.getElementById(i)},mine=null,g=null,k=null,cur
 var LB={study:"تحصیلی",work:"کاری",women:"بانوان"};
 function api(p,o){o=o||{};o.headers=o.headers||{};o.headers.apikey=K;return fetch(U+p,o)}
 function fa(n){return Number(n).toLocaleString("fa-IR")}
-function fd(s){return s?new Date(s+"T00:00:00").toLocaleDateString("fa-IR",{year:"numeric",month:"long",day:"numeric"}):"—"}
+function fd(s){return s?String(s).slice(0,10):"—"}
+function ft(s){if(!s)return"—";var d=new Date(s),p=function(n){return(n<10?"0":"")+n};return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes())}
 function short(n){n=n.trim();var i=n.indexOf(" ");return i>0?n.slice(0,i)+" "+n.slice(n.lastIndexOf(" ")+1).charAt(0)+".":n}
 function pick(box,fn){var bs=$(box).querySelectorAll(".opt");bs.forEach(function(b){b.onclick=function(){bs.forEach(function(x){x.setAttribute("aria-pressed",x===b)});fn(b.dataset.v)}})}
 pick("gs",function(v){g=v});
 pick("ks",function(v){k=v;$("dtw").hidden=v==="work";$("fll").textContent=v==="work"?"مدرک کاری (اختیاری)":"فایل پذیرش"});
-function tab(n){$("p1").hidden=n!==1;$("p2").hidden=n!==2;$("t1").setAttribute("aria-selected",n===1);$("t2").setAttribute("aria-selected",n===2);if(n===2)draw()}
-$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
+function tab(n){[1,2,3,4].forEach(function(i){$("p"+i).hidden=i!==n;$("t"+i).setAttribute("aria-selected",i===n)});if(n===2)draw();if(n===4)loadPub()}
+$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};$("t3").onclick=function(){tab(3)};$("t4").onclick=function(){tab(4)};
 document.querySelectorAll(".sub .tab").forEach(function(b){b.onclick=function(){cur=b.dataset.l;document.querySelectorAll(".sub .tab").forEach(function(x){x.setAttribute("aria-selected",x===b)});draw()}});
 function draw(){
  var tb=$("rows"),em=$("empty"),en=cur==="entered";tb.innerHTML="";
  $("lt").textContent=en?"افرادی که تا اینجا وارد سفارت شده‌اند":"لیست "+LB[cur];
- $("th").innerHTML=en?"<th>نام</th><th>لیست</th><th>تاریخ ورود</th>":"<th>نوبت</th><th>نام</th><th>تاریخ پذیرش</th>";
+ $("th").innerHTML=en?"<th>نام</th><th>لیست</th><th>تاریخ ورود</th>":"<th>نوبت</th><th>نام</th><th>تاریخ پذیرش</th><th>زمان ثبت‌نام</th>";
  em.textContent="در حال بارگذاری…";em.hidden=false;
- var q=en?"/rest/v1/public_entered?select=short_name,list,entered_at&order=entered_at.desc":"/rest/v1/public_queue?select=pos,short_name,admission_date&list=eq."+cur+"&order=pos.asc";
+ api("/rest/v1/public_stats?select=*").then(function(r){return r.json()}).then(function(j){var x=j[0]||{};$("st").textContent="در انتظار بررسی: "+fa(x.pending||0)+" نفر"}).catch(function(){});
+ var q=en?"/rest/v1/public_entered?select=short_name,list,entered_at&order=entered_at.desc":"/rest/v1/public_queue?select=pos,short_name,admission_date,registered_at&list=eq."+cur+"&order=pos.asc";
  api(q).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(a){
   em.textContent=en?"هنوز کسی ثبت نشده است.":"هنوز کسی در این لیست ثبت‌نام نکرده است.";em.hidden=a.length>0;
   a.forEach(function(r){var tr=document.createElement("tr");if(!en&&mine&&mine.l===cur&&r.short_name===mine.s&&r.admission_date===mine.d)tr.className="me";
-   (en?[r.short_name,LB[r.list],fd(String(r.entered_at).slice(0,10))]:[fa(r.pos),r.short_name,fd(r.admission_date)]).forEach(function(x){var td=document.createElement("td");td.textContent=x;tr.appendChild(td)});tb.appendChild(tr)})
+   (en?[r.short_name,LB[r.list],fd(String(r.entered_at).slice(0,10))]:[fa(r.pos),r.short_name,fd(r.admission_date),ft(r.registered_at)]).forEach(function(x){var td=document.createElement("td");td.textContent=x;tr.appendChild(td)});tb.appendChild(tr)})
  }).catch(function(){em.textContent="لیست بارگذاری نشد. اینترنت را بررسی کنید و دوباره تلاش کنید.";em.hidden=false})}
 $("reg").onclick=function(){
  var n=$("nm").value.trim(),p=$("ph").value.replace(/\s/g,""),d=$("dt").value,e=$("err"),f=$("fl").files[0],b=$("reg"),w=k==="work";
@@ -132,12 +181,50 @@ $("reg").onclick=function(){
   path=(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+""+Math.random().toString(36).slice(2))+ext;
   up=api("/storage/v1/object/admissions/"+path,{method:"POST",headers:{"Content-Type":f.type||"application/octet-stream"},body:f}).then(function(r){if(!r.ok)throw 1})}
  up.then(function(){return api("/rest/v1/rpc/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({p_name:n,p_phone:p,p_date:w?null:d,p_file:path,p_gender:g,p_kind:k})})})
- .then(function(r){if(!r.ok)throw 2;return r.json()})
- .then(function(pos){var l=g==="female"?"women":k;mine={l:l,s:short(n),d:w?null:d};var o=$("done");o.hidden=false;
-  o.innerHTML="<b>ثبت شد.</b><br>لیست شما: "+LB[l]+"<br>جایگاه فعلی شما: "+fa(pos)+"<br><span class='hint'>با ثبت‌نام افراد دیگر، جایگاه شما ممکن است تغییر کند.</span>";o.scrollIntoView({block:"nearest"})})
- .catch(function(x){e.textContent=x===1?"آپلود فایل انجام نشد. (خطای ۱)":x===2?"ثبت اطلاعات در لیست انجام نشد. (خطای ۲)":"ارتباط با سرور برقرار نشد. اینترنت را بررسی کنید. (خطای ۳)"})
+ .then(function(r){if(!r.ok)return r.text().then(function(t){throw t.indexOf("duplicate")>-1?4:t.indexOf("rate limit")>-1?5:2});return r.json()})
+ .then(function(j){var pos=j.pos,l=g==="female"?"women":k;mine={l:l,s:short(n),d:w?null:d};var o=$("done");o.hidden=false;
+  var m=pos===0?"<b>ثبت‌نام شما دریافت شد.</b><br>بعد از بررسی فایل توسط مدیر، نام شما در لیست «"+LB[l]+"» نمایش داده می‌شود.":"<b>ثبت شد.</b><br>لیست شما: "+LB[l]+"<br>جایگاه فعلی شما: "+fa(pos);
+  o.innerHTML=m+"<br><br>کد پیگیری شما:<br><b dir='ltr' style='font-size:1.4rem;letter-spacing:1px'>"+j.code+"</b><br><button class='go' id='cp' type='button' style='margin-top:8px'>کپی کد</button><p class='hint'>این کد را ذخیره کنید یا از صفحه عکس بگیرید. با کد و ۴ رقم آخر موبایل از تب «پیگیری» وضعیت خود را ببینید. لطفاً دوباره ثبت‌نام نکنید.</p>";
+  $("cp").onclick=function(){try{navigator.clipboard.writeText(j.code);$("cp").textContent="کپی شد"}catch(x){}};
+  o.scrollIntoView({block:"nearest"})})
+ .catch(function(x){e.textContent=x===1?"آپلود فایل انجام نشد. (خطای ۱)":x===2?"ثبت اطلاعات در لیست انجام نشد. (خطای ۲)":x===4?"این شماره‌ی موبایل قبلاً ثبت‌نام کرده است.":x===5?"ثبت‌نام‌ها از این اینترنت زیاد بوده. کمی بعد دوباره تلاش کنید.":"ارتباط با سرور برقرار نشد. اینترنت را بررسی کنید. (خطای ۳)"})
  .then(function(){b.disabled=false;b.textContent="ثبت در لیست"});
 };
+
+$("tg").onclick=function(){
+ var c=$("tc").value.trim(),p=$("tp").value.replace(/\s/g,""),e=$("te"),r=$("tr"),b=$("tg");r.textContent="";
+ if(c.length<6||p.length<4){e.textContent="کد پیگیری و ۴ رقم آخر موبایل را وارد کنید.";return}
+ e.textContent="";b.disabled=true;
+ api("/rest/v1/rpc/track",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({p_code:c,p_last4:p})})
+ .then(function(x){if(!x.ok)throw 0;return x.json()})
+ .then(function(j){r.textContent=j.status==="notfound"?"موردی با این مشخصات پیدا نشد. کد و ۴ رقم آخر موبایل را بررسی کنید.":j.status==="pending"?"ثبت‌نام شما دریافت شده و منتظر بررسی مدیر است.":j.status==="entered"?"ورود شما در تاریخ "+fd(j.entered_at)+" ثبت شده است.":"تأیید شده است. لیست "+LB[j.list]+"، نوبت شما: "+fa(j.pos)+" از "+fa(j.total);showMsgs(j.messages||[])})
+ .catch(function(){e.textContent="ارتباط با سرور برقرار نشد. دوباره تلاش کنید."})
+ .then(function(){b.disabled=false})};
+
+$("mk").onchange=function(){$("mo").hidden=$("mk").value!=="objection"};
+$("ms").onclick=function(){
+ var e=$("me"),b=$("ms"),o=$("mk").value==="objection";e.textContent="";e.style.color="";
+ if($("mb").value.trim().length<3){e.textContent="متن پیام را بنویسید.";return}
+ if(o&&($("mc").value.trim().length<6||$("m4").value.trim().length<4)){e.textContent="برای اعتراض، کد پیگیری و ۴ رقم آخر موبایل لازم است.";return}
+ b.disabled=true;
+ api("/rest/v1/rpc/send_message",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({p_kind:o?"objection":"suggestion",p_body:$("mb").value,p_code:o?$("mc").value:null,p_last4:o?$("m4").value:null})})
+ .then(function(r){if(!r.ok)return r.text().then(function(t){throw t.indexOf("not found")>-1?1:t.indexOf("rate limit")>-1?2:0});$("mb").value="";e.style.color="var(--pri)";e.textContent="پیام شما ارسال شد. ممنون."})
+ .catch(function(x){e.textContent=x===1?"کد پیگیری یا ۴ رقم آخر موبایل درست نیست.":x===2?"پیام‌های زیادی از این اینترنت ارسال شده. کمی بعد دوباره تلاش کنید.":"ارسال نشد. دوباره تلاش کنید."})
+ .then(function(){b.disabled=false})};
+
+function showMsgs(a){var b=$("tm");b.innerHTML="";if(!a.length)return;
+ var h=document.createElement("h2");h.textContent="پیام‌های شما";h.style.cssText="font-size:1.05rem;margin:14px 0 6px";b.appendChild(h);
+ a.forEach(function(x){var d=document.createElement("div");d.style.cssText="padding:8px 0;border-top:1px solid var(--line);font-weight:400";
+  var p=document.createElement("div");p.textContent=(x.kind==="objection"?"اعتراض: ":"پیشنهاد: ")+x.body;d.appendChild(p);
+  var r=document.createElement("div");r.style.cssText="margin-top:4px;color:"+(x.reply?"var(--pri)":"var(--mute)");r.textContent=x.reply?"پاسخ: "+x.reply:"هنوز پاسخی داده نشده است.";d.appendChild(r);b.appendChild(d)})}
+function loadPub(){
+ api("/rest/v1/public_messages?select=body,reply,created_at&order=created_at.desc&limit=30").then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(a){
+  var s=$("pms"),l=$("pml");l.innerHTML="";s.hidden=!a.length;
+  a.forEach(function(x){var d=document.createElement("div");d.style.cssText="padding:8px 0;border-bottom:1px solid var(--line)";
+   var p=document.createElement("div");p.textContent=x.body;d.appendChild(p);
+   if(x.reply){var r=document.createElement("div");r.style.cssText="margin-top:4px;color:var(--pri)";r.textContent="پاسخ: "+x.reply;d.appendChild(r)}
+   l.appendChild(d)})
+ }).catch(function(){})}
 </script>
 </body>
 </html>

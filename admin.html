@@ -51,6 +51,8 @@ select{font:inherit;width:100%;padding:11px;border:2px solid var(--line);border-
 .sm.d{color:var(--err)}
 .sm:focus-visible,select:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
 .ghost{background:var(--soft);color:var(--ink)}
+.tabs.sub{flex-wrap:wrap}.tabs.sub .tab{flex:1 1 30%}
+textarea{font:inherit;width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -64,11 +66,14 @@ select{font:inherit;width:100%;padding:11px;border:2px solid var(--line);border-
 <button class="go" id="li">ورود</button>
 </section>
 <div id="ad" hidden>
+<input id="q" placeholder="جستجو: نام، شماره موبایل یا کد پیگیری" style="margin-bottom:10px">
 <div class="tabs sub" id="tb">
-<button class="tab" data-l="study" aria-selected="true">تحصیلی</button>
+<button class="tab" data-l="pending" aria-selected="true" id="tpd">در انتظار</button>
+<button class="tab" data-l="study" aria-selected="false">تحصیلی</button>
 <button class="tab" data-l="work" aria-selected="false">کاری</button>
 <button class="tab" data-l="women" aria-selected="false">بانوان</button>
 <button class="tab" data-l="entered" aria-selected="false">وارد شده‌ها</button>
+<button class="tab" data-l="messages" aria-selected="false" id="tms">پیام‌ها</button>
 </div>
 <p class="hint" id="info"></p>
 <div style="display:flex;gap:8px;margin-bottom:12px">
@@ -80,12 +85,12 @@ select{font:inherit;width:100%;padding:11px;border:2px solid var(--line);border-
 </main>
 <script>
 var U="https://yfcllnwygkmjfnuaoyem.supabase.co",K="sb_publishable_iE4H_nQM0HodX6V0sq0gGQ_bumpe2HJ";
-var $=function(i){return document.getElementById(i)},S=null,rows=[],cur="study";
-var LB={study:"تحصیلی",work:"کاری",women:"بانوان",entered:"وارد شده‌ها"};
+var $=function(i){return document.getElementById(i)},S=null,rows=[],msgs=[],cur="pending",sq=false;
+var LB={study:"تحصیلی",work:"کاری",women:"بانوان",entered:"وارد شده‌ها",pending:"در انتظار تأیید",messages:"پیام‌ها"};
 try{S=JSON.parse(sessionStorage.getItem("s")||"null")}catch(e){}
 function save(s){S=s;try{if(s)sessionStorage.setItem("s",JSON.stringify(s));else sessionStorage.removeItem("s")}catch(e){}}
 function fa(n){return Number(n).toLocaleString("fa-IR")}
-function fd(s){return s?new Date(String(s).slice(0,10)+"T00:00:00").toLocaleDateString("fa-IR",{year:"numeric",month:"long",day:"numeric"}):"—"}
+function fd(s){return s?String(s).slice(0,10):"—"}
 function el(t,o,k){var e=document.createElement(t);for(var x in o){if(x==="text")e.textContent=o[x];else if(x==="cls")e.className=o[x];else if(x==="on")e.onclick=o[x];else e.setAttribute(x,o[x])}(k||[]).forEach(function(c){e.appendChild(c)});return e}
 function call(path,method,body,retry){
  var h={apikey:K,"Content-Type":"application/json"};if(S)h.Authorization="Bearer "+S.at;
@@ -110,40 +115,64 @@ function cmp(a,b){
  if(!p&&!q&&a.admission_date!==b.admission_date)return a.admission_date<b.admission_date?-1:1;if(p!==q)return p?1:-1;
  return a.created_at<b.created_at?-1:1}
 function load(){
- return call("/rest/v1/queue?select=*").then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(a){rows=a;show(true);render()})
+ return call("/rest/v1/queue?select=*").then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(a){rows=a;show(true);return call("/rest/v1/messages?select=*&order=created_at.desc").then(function(r){return r.ok?r.json():[]}).then(function(m){msgs=m;render()})})
  .catch(function(){save(null);show(false);$("le").textContent="ورود انجام نشد. دوباره تلاش کنید."})}
 function msg(t){$("info").textContent=t}
 function act(path,method,body,ok){return call(path,method,body).then(function(r){if(!r.ok){msg("انجام نشد. اگر مشکل ادامه داشت دوباره وارد شوید.");throw 0}return ok?ok(r):load()})}
-function cur_list(){return cur==="entered"?rows.filter(function(r){return r.entered_at}).sort(function(a,b){return a.entered_at<b.entered_at?1:-1}):rows.filter(function(r){return !r.entered_at&&listOf(r)===cur}).sort(cmp)}
+function cur_list(){
+ var t=($("q").value||"").trim().toLowerCase();sq=!!t;
+ if(t)return rows.filter(function(r){return (r.name+" "+r.phone+" "+(r.code||"")).toLowerCase().indexOf(t)>-1}).sort(function(x,y){return x.created_at<y.created_at?-1:1});
+ if(cur==="messages")return msgs.slice().sort(function(x,y){return (x.handled-y.handled)||(x.created_at<y.created_at?1:-1)});
+ if(cur==="entered")return rows.filter(function(r){return r.entered_at}).sort(function(x,y){return x.entered_at<y.entered_at?1:-1});
+ if(cur==="pending")return rows.filter(function(r){return !r.entered_at&&!r.approved}).sort(function(x,y){return x.created_at<y.created_at?-1:1});
+ return rows.filter(function(r){return !r.entered_at&&r.approved&&listOf(r)===cur}).sort(cmp)}
 function render(){
  document.querySelectorAll("#tb .tab").forEach(function(b){b.setAttribute("aria-selected",b.dataset.l===cur)});
- $("rs").hidden=cur==="entered";
- var a=cur_list(),box=$("ls");box.innerHTML="";
- msg("لیست "+LB[cur]+": "+fa(a.length)+" نفر");
- if(!a.length)box.appendChild(el("p",{cls:"hint",text:"این لیست خالی است. اگر ثبت‌نام‌هایی وجود دارد و اینجا نمی‌بینید، ایمیل شما در جدول admins ثبت نشده است."}));
- a.forEach(function(r,i){box.appendChild(card(r,i,a))})}
+ var a0=cur_list();$("rs").hidden=sq||cur==="entered"||cur==="pending"||cur==="messages";
+ $("tms").textContent="پیام‌ها ("+fa(msgs.filter(function(m){return !m.handled}).length)+")";
+ $("tpd").textContent="در انتظار ("+fa(rows.filter(function(r){return !r.entered_at&&!r.approved}).length)+")";
+ var a=a0,box=$("ls");box.innerHTML="";
+ msg(sq?"نتیجه‌ی جستجو: "+fa(a.length)+" نفر":cur==="messages"?"پیام‌ها: "+fa(a.length):"لیست "+LB[cur]+": "+fa(a.length)+" نفر");
+ if(!a.length)box.appendChild(el("p",{cls:"hint",text:"این لیست خالی است. اگر مطمئنید ثبت‌نام‌هایی وجود دارد و اینجا نمی‌بینید، ایمیل شما در جدول admins ثبت نشده است."}));
+ a.forEach(function(r,i){box.appendChild(cur==="messages"&&!sq?mcard(r):card(r,i,a))})}
+function sn(n){n=n.trim();var i=n.indexOf(" ");return i>0?n.slice(0,i)+" "+n.slice(n.lastIndexOf(" ")+1).charAt(0)+".":n}
+function reason(){return true}
+function act2(path,method,body){return act(path,method,body)}
+function mcard(m){
+ var q=rows.filter(function(r){return r.id===m.queue_id})[0],sg=m.kind==="suggestion",c=el("div",{cls:"row"});
+ c.appendChild(el("div",{cls:"rh"},[el("span",{text:(m.kind==="objection"?"اعتراض":"پیشنهاد")+(q?" · "+q.name:"")+(m.is_public?" · عمومی":"")}),el("span",{cls:"meta",text:fd(m.created_at)+(m.handled?" · رسیدگی شد":"")})]));
+ c.appendChild(el("p",{text:m.body,style:"margin:6px 0"}));
+ var ta=el("textarea",{rows:"3",maxlength:"1000",placeholder:"پاسخ را بنویسید"});ta.value=m.reply||"";c.appendChild(ta);
+ c.appendChild(el("p",{cls:"hint",style:"margin:4px 0 0",text:sg?(q?"فرستنده پاسخ را با کد پیگیری خودش می‌بیند. اگر «نمایش برای همه» را بزنید، پیام (بدون نام) و پاسخ برای همه دیده می‌شود.":"این پیام کد پیگیری ندارد؛ پاسخ فقط وقتی دیده می‌شود که پیام را عمومی کنید."):"پاسخ اعتراض فقط برای خود فرد (با کد پیگیری) نمایش داده می‌شود."}));
+ var b=el("div",{cls:"acts"});
+ if(q)b.appendChild(el("span",{cls:"meta",text:q.phone+" · کد: "+q.code}));
+ b.appendChild(el("button",{cls:"sm p",text:m.reply?"به‌روزرسانی پاسخ":"ارسال پاسخ",on:function(){var t=ta.value.trim();if(!t)return;act("/rest/v1/messages?id=eq."+m.id,"PATCH",{reply:t,replied_at:new Date().toISOString(),handled:true})}}));
+ if(sg)b.appendChild(el("button",{cls:"sm",text:m.is_public?"مخفی کردن از عموم":"نمایش برای همه",on:function(){if(m.is_public||confirm("متن پیام بدون نام فرستنده برای همه نمایش داده می‌شود. ادامه؟"))act("/rest/v1/messages?id=eq."+m.id,"PATCH",{is_public:!m.is_public})}}));
+ if(!m.handled)b.appendChild(el("button",{cls:"sm",text:"رسیدگی شد",on:function(){act("/rest/v1/messages?id=eq."+m.id,"PATCH",{handled:true})}}));
+ b.appendChild(el("button",{cls:"sm d",text:"حذف",on:function(){if(confirm("این پیام حذف شود؟"))act("/rest/v1/messages?id=eq."+m.id,"DELETE")}}));
+ c.appendChild(b);return c}
 function move(a,i,d){
  var ids=a.map(function(r){return r.id}),j=i+d;if(j<0||j>=ids.length)return;
- var t=ids[i];ids[i]=ids[j];ids[j]=t;act("/rest/v1/rpc/admin_set_order","POST",{p_ids:ids})}
+ var t=ids[i];ids[i]=ids[j];ids[j]=t;var rs=reason();if(!rs)return;act2("/rest/v1/rpc/admin_set_order","POST",{p_ids:ids},{action:"جابجایی در لیست "+LB[cur],detail:sn(a[i].name)+" و "+sn(a[j].name),reason:rs})}
 function openFile(r){
  var w=window.open("","_blank");
  call("/storage/v1/object/sign/admissions/"+r.file_path,"POST",{expiresIn:300}).then(function(x){if(!x.ok)throw 0;return x.json()})
  .then(function(j){if(w)w.location=U+"/storage/v1"+j.signedURL;else msg("پنجره‌ی جدید مسدود شد.")}).catch(function(){if(w)w.close();msg("فایل باز نشد.")})}
 function card(r,i,a){
- var en=!!r.entered_at,c=el("div",{cls:"row"});
- c.appendChild(el("div",{cls:"rh"},[el("span",{text:(en?"":fa(i+1)+". ")+r.name}),el("span",{cls:"meta",text:en?fd(r.entered_at):fd(r.admission_date)})]));
+ var en=!!r.entered_at,pd=!en&&!r.approved,c=el("div",{cls:"row"});
+ c.appendChild(el("div",{cls:"rh"},[el("span",{text:(en||pd||sq?"":fa(i+1)+". ")+r.name}),el("span",{cls:"meta",text:en?fd(r.entered_at):fd(r.admission_date)})]));
  var m=el("div",{cls:"meta"},[el("span",{text:(r.gender==="female"?"زن":"مرد")+" · "+(r.kind==="study"?"تحصیلی":"کاری")+" · "}),el("span",{text:r.phone,dir:"ltr"})]);
  c.appendChild(m);
- c.appendChild(el("div",{cls:"meta",text:"ثبت‌نام: "+fd(r.created_at)+(r.manual_pos!=null&&!en?" · ترتیب دستی":"")}));
+ c.appendChild(el("div",{cls:"meta",text:"ثبت‌نام: "+fd(r.created_at)+(r.manual_pos!=null&&!en?" · ترتیب دستی":"")+(r.code?" · کد: "+r.code:"")+(sq?" · "+(en?"وارد شده":!r.approved?"در انتظار تأیید":"لیست "+LB[listOf(r)]):"")}));
  var b=el("div",{cls:"acts"});
- if(!en){
-  if(i>0)b.appendChild(el("button",{cls:"sm",text:"بالا",on:function(){move(a,i,-1)}}));
-  if(i<a.length-1)b.appendChild(el("button",{cls:"sm",text:"پایین",on:function(){move(a,i,1)}}));
-  b.appendChild(el("button",{cls:"sm p",text:"وارد شد",on:function(){act("/rest/v1/queue?id=eq."+r.id,"PATCH",{entered_at:new Date().toISOString()})}}));
- }else b.appendChild(el("button",{cls:"sm p",text:"بازگرداندن به صف",on:function(){act("/rest/v1/queue?id=eq."+r.id,"PATCH",{entered_at:null})}}));
+ if(pd){b.appendChild(el("button",{cls:"sm p",text:"تأیید",on:function(){act2("/rest/v1/queue?id=eq."+r.id,"PATCH",{approved:true},{action:"تأیید ثبت‌نام",detail:sn(r.name)+" ("+LB[listOf(r)]+")"})}}))}else if(!en){
+  if(!sq&&i>0)b.appendChild(el("button",{cls:"sm",text:"بالا",on:function(){move(a,i,-1)}}));
+  if(!sq&&i<a.length-1)b.appendChild(el("button",{cls:"sm",text:"پایین",on:function(){move(a,i,1)}}));
+  b.appendChild(el("button",{cls:"sm p",text:"وارد شد",on:function(){act2("/rest/v1/queue?id=eq."+r.id,"PATCH",{entered_at:new Date().toISOString()},{action:"ثبت ورود به سفارت",detail:sn(r.name)})}}));
+ }else b.appendChild(el("button",{cls:"sm p",text:"بازگرداندن به صف",on:function(){var rs=reason();if(!rs)return;act2("/rest/v1/queue?id=eq."+r.id,"PATCH",{entered_at:null},{action:"بازگرداندن به صف",detail:sn(r.name),reason:rs})}}));
  b.appendChild(el("button",{cls:"sm",text:"ویرایش",on:function(){edit(r,c)}}));
  if(r.file_path)b.appendChild(el("button",{cls:"sm",text:"فایل",on:function(){openFile(r)}}));
- b.appendChild(el("button",{cls:"sm d",text:"حذف",on:function(){if(confirm("«"+r.name+"» برای همیشه حذف شود؟"))act("/rest/v1/queue?id=eq."+r.id,"DELETE")}}));
+ b.appendChild(el("button",{cls:"sm d",text:"حذف",on:function(){if(confirm("«"+r.name+"» برای همیشه حذف شود؟")){var rs=reason();if(rs)act2("/rest/v1/queue?id=eq."+r.id,"DELETE",null,{action:"حذف ثبت‌نام",detail:sn(r.name),reason:rs})}}}));
  c.appendChild(b);return c}
 function opt(v,t,sel){var o=el("option",{value:v,text:t});if(sel)o.selected=true;return o}
 function edit(r,c){
@@ -157,10 +186,11 @@ function edit(r,c){
    el("button",{cls:"sm p",text:"ذخیره",on:function(){
     if(!nm.value.trim()){er.textContent="نام را وارد کنید.";return}
     if(ks.value==="study"&&!dt.value){er.textContent="برای درخواست تحصیلی تاریخ پذیرش لازم است.";return}
-    act("/rest/v1/queue?id=eq."+r.id,"PATCH",{name:nm.value.trim(),phone:ph.value.trim(),gender:gs.value,kind:ks.value,admission_date:ks.value==="work"?null:(dt.value||null)})}}),
+    var rs=reason();if(!rs)return;act2("/rest/v1/queue?id=eq."+r.id,"PATCH",{name:nm.value.trim(),phone:ph.value.trim(),gender:gs.value,kind:ks.value,admission_date:ks.value==="work"?null:(dt.value||null)},{action:"ویرایش اطلاعات",detail:sn(r.name),reason:rs})}}),
    el("button",{cls:"sm",text:"انصراف",on:function(){f.remove()}})])]);
  c.appendChild(f)}
-$("rs").onclick=function(){if(confirm("ترتیب دستی لیست "+LB[cur]+" پاک شود و دوباره بر اساس تاریخ پذیرش مرتب شود؟"))act("/rest/v1/rpc/admin_reset_order","POST",{p_list:cur})};
+$("q").oninput=function(){render()};
+$("rs").onclick=function(){if(confirm("ترتیب دستی لیست "+LB[cur]+" پاک شود و دوباره بر اساس تاریخ پذیرش مرتب شود؟")){var rs=reason();if(rs)act2("/rest/v1/rpc/admin_reset_order","POST",{p_list:cur},{action:"بازگشت به ترتیب خودکار لیست "+LB[cur],reason:rs})}};
 document.querySelectorAll("#tb .tab").forEach(function(b){b.onclick=function(){cur=b.dataset.l;render()}});
 if(S)load();
 </script>
