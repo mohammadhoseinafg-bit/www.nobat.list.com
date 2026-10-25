@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مدیریت لیست نوبت</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#1b2733;--mute:#566574;--pri:#1f5f8b;--on:#fff;--soft:#e3eef6;--line:#cfd9e2;--warn:#fff4d6;--warnink:#5c4300;--err:#b3261e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111a22;--card:#192530;--ink:#e8eef3;--mute:#9fb0be;--pri:#6cb4e4;--on:#08202f;--soft:#223646;--line:#33465a;--warn:#3a3012;--warnink:#f3dc9a;--err:#ff9a92}}
+:root[data-theme="dark"]{--bg:#111a22;--card:#192530;--ink:#e8eef3;--mute:#9fb0be;--pri:#6cb4e4;--on:#08202f;--soft:#223646;--line:#33465a;--warn:#3a3012;--warnink:#f3dc9a;--err:#ff9a92}
+html{scroll-padding-top:env(safe-area-inset-top,0px);color-scheme:light dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.8 Vazirmatn,Tahoma,system-ui,sans-serif}
+main{max-width:600px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.6rem;line-height:1.4;margin:0 0 4px}
+.lead{color:var(--mute);margin:0 0 14px}
+.note{background:var(--soft);color:var(--ink);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:.95rem}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{flex:1;font:inherit;padding:12px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);cursor:pointer}
+.tab[aria-selected=true]{background:var(--pri);border-color:var(--pri);color:var(--on);font-weight:700}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+h2{font-size:1.1rem;margin:0 0 8px}
+label{display:block;font-weight:700;margin:12px 0 4px}
+input{font:inherit;width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.hint{color:var(--mute);font-size:.9rem;margin:4px 0 0}
+.err{color:var(--err);min-height:1.8em;margin:8px 0 0}
+.go{font:inherit;font-weight:700;width:100%;margin-top:6px;padding:13px;border:0;border-radius:10px;background:var(--pri);color:var(--on);cursor:pointer}
+.tab:focus-visible,input:focus-visible,.go:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th,td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mute);font-weight:400}
+.me{background:var(--soft)}
+.ok{background:var(--soft);border-radius:12px;padding:12px 14px;margin-top:12px}
+[hidden]{display:none!important}
+.seg{display:flex;gap:8px}
+.opt{flex:1;font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:10px;min-height:48px;cursor:pointer}
+.opt[aria-pressed=true]{background:var(--pri);border-color:var(--pri);color:var(--on);font-weight:700}
+.opt:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+.tabs.sub .tab{padding:9px 6px;font-size:.95rem}
+select{font:inherit;width:100%;padding:11px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.row{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.rh{display:flex;justify-content:space-between;gap:8px;font-weight:700}
+.meta{color:var(--mute);font-size:.9rem}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sm{font:inherit;font-size:.9rem;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);cursor:pointer}
+.sm.p{background:var(--pri);color:var(--on);border-color:var(--pri)}
+.sm.d{color:var(--err)}
+.sm:focus-visible,select:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+.ghost{background:var(--soft);color:var(--ink)}
+</style>
+</head>
+<body>
+<main>
+<h1>پنل مدیریت</h1>
+<section id="lg">
+<h2>ورود</h2>
+<label for="em">ایمیل</label><input id="em" type="email" autocomplete="username" dir="ltr" style="text-align:right">
+<label for="pw">رمز عبور</label><input id="pw" type="password" autocomplete="current-password" dir="ltr" style="text-align:right">
+<p class="err" id="le" role="alert"></p>
+<button class="go" id="li">ورود</button>
+</section>
+<div id="ad" hidden>
+<div class="tabs sub" id="tb">
+<button class="tab" data-l="study" aria-selected="true">تحصیلی</button>
+<button class="tab" data-l="work" aria-selected="false">کاری</button>
+<button class="tab" data-l="women" aria-selected="false">بانوان</button>
+<button class="tab" data-l="entered" aria-selected="false">وارد شده‌ها</button>
+</div>
+<p class="hint" id="info"></p>
+<div style="display:flex;gap:8px;margin-bottom:12px">
+<button class="go ghost" id="rs" style="margin:0">ترتیب خودکار</button>
+<button class="go ghost" id="lo" style="margin:0">خروج</button>
+</div>
+<div id="ls"></div>
+</div>
+</main>
+<script>
+var U="https://yfcllnwygkmjfnuaoyem.supabase.co",K="sb_publishable_iE4H_nQM0HodX6V0sq0gGQ_bumpe2HJ";
+var $=function(i){return document.getElementById(i)},S=null,rows=[],cur="study";
+var LB={study:"تحصیلی",work:"کاری",women:"بانوان",entered:"وارد شده‌ها"};
+try{S=JSON.parse(sessionStorage.getItem("s")||"null")}catch(e){}
+function save(s){S=s;try{if(s)sessionStorage.setItem("s",JSON.stringify(s));else sessionStorage.removeItem("s")}catch(e){}}
+function fa(n){return Number(n).toLocaleString("fa-IR")}
+function fd(s){return s?new Date(String(s).slice(0,10)+"T00:00:00").toLocaleDateString("fa-IR",{year:"numeric",month:"long",day:"numeric"}):"—"}
+function el(t,o,k){var e=document.createElement(t);for(var x in o){if(x==="text")e.textContent=o[x];else if(x==="cls")e.className=o[x];else if(x==="on")e.onclick=o[x];else e.setAttribute(x,o[x])}(k||[]).forEach(function(c){e.appendChild(c)});return e}
+function call(path,method,body,retry){
+ var h={apikey:K,"Content-Type":"application/json"};if(S)h.Authorization="Bearer "+S.at;
+ if(method==="PATCH"||method==="DELETE")h.Prefer="return=minimal";
+ return fetch(U+path,{method:method||"GET",headers:h,body:body?JSON.stringify(body):undefined}).then(function(r){
+  if(r.status===401&&S&&!retry)return refresh().then(function(){return call(path,method,body,true)});return r})}
+function refresh(){
+ return fetch(U+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:K,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:S.rt})})
+ .then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){save({at:j.access_token,rt:j.refresh_token})}).catch(function(){save(null);show(false)})}
+function show(on){$("lg").hidden=on;$("ad").hidden=!on}
+$("li").onclick=function(){
+ var e=$("le");e.textContent="";
+ fetch(U+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:K,"Content-Type":"application/json"},body:JSON.stringify({email:$("em").value.trim(),password:$("pw").value})})
+ .then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){save({at:j.access_token,rt:j.refresh_token});$("pw").value="";load()})
+ .catch(function(){e.textContent="ایمیل یا رمز عبور درست نیست."})};
+$("lo").onclick=function(){save(null);rows=[];show(false)};
+function listOf(r){return r.gender==="female"?"women":r.kind}
+function cmp(a,b){
+ var x=a.manual_pos==null,y=b.manual_pos==null;
+ if(!x&&!y&&a.manual_pos!==b.manual_pos)return a.manual_pos-b.manual_pos;if(x!==y)return x?1:-1;
+ var p=a.admission_date==null,q=b.admission_date==null;
+ if(!p&&!q&&a.admission_date!==b.admission_date)return a.admission_date<b.admission_date?-1:1;if(p!==q)return p?1:-1;
+ return a.created_at<b.created_at?-1:1}
+function load(){
+ return call("/rest/v1/queue?select=*").then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(a){rows=a;show(true);render()})
+ .catch(function(){save(null);show(false);$("le").textContent="ورود انجام نشد. دوباره تلاش کنید."})}
+function msg(t){$("info").textContent=t}
+function act(path,method,body,ok){return call(path,method,body).then(function(r){if(!r.ok){msg("انجام نشد. اگر مشکل ادامه داشت دوباره وارد شوید.");throw 0}return ok?ok(r):load()})}
+function cur_list(){return cur==="entered"?rows.filter(function(r){return r.entered_at}).sort(function(a,b){return a.entered_at<b.entered_at?1:-1}):rows.filter(function(r){return !r.entered_at&&listOf(r)===cur}).sort(cmp)}
+function render(){
+ document.querySelectorAll("#tb .tab").forEach(function(b){b.setAttribute("aria-selected",b.dataset.l===cur)});
+ $("rs").hidden=cur==="entered";
+ var a=cur_list(),box=$("ls");box.innerHTML="";
+ msg("لیست "+LB[cur]+": "+fa(a.length)+" نفر");
+ if(!a.length)box.appendChild(el("p",{cls:"hint",text:"این لیست خالی است. اگر ثبت‌نام‌هایی وجود دارد و اینجا نمی‌بینید، ایمیل شما در جدول admins ثبت نشده است."}));
+ a.forEach(function(r,i){box.appendChild(card(r,i,a))})}
+function move(a,i,d){
+ var ids=a.map(function(r){return r.id}),j=i+d;if(j<0||j>=ids.length)return;
+ var t=ids[i];ids[i]=ids[j];ids[j]=t;act("/rest/v1/rpc/admin_set_order","POST",{p_ids:ids})}
+function openFile(r){
+ var w=window.open("","_blank");
+ call("/storage/v1/object/sign/admissions/"+r.file_path,"POST",{expiresIn:300}).then(function(x){if(!x.ok)throw 0;return x.json()})
+ .then(function(j){if(w)w.location=U+"/storage/v1"+j.signedURL;else msg("پنجره‌ی جدید مسدود شد.")}).catch(function(){if(w)w.close();msg("فایل باز نشد.")})}
+function card(r,i,a){
+ var en=!!r.entered_at,c=el("div",{cls:"row"});
+ c.appendChild(el("div",{cls:"rh"},[el("span",{text:(en?"":fa(i+1)+". ")+r.name}),el("span",{cls:"meta",text:en?fd(r.entered_at):fd(r.admission_date)})]));
+ var m=el("div",{cls:"meta"},[el("span",{text:(r.gender==="female"?"زن":"مرد")+" · "+(r.kind==="study"?"تحصیلی":"کاری")+" · "}),el("span",{text:r.phone,dir:"ltr"})]);
+ c.appendChild(m);
+ c.appendChild(el("div",{cls:"meta",text:"ثبت‌نام: "+fd(r.created_at)+(r.manual_pos!=null&&!en?" · ترتیب دستی":"")}));
+ var b=el("div",{cls:"acts"});
+ if(!en){
+  if(i>0)b.appendChild(el("button",{cls:"sm",text:"بالا",on:function(){move(a,i,-1)}}));
+  if(i<a.length-1)b.appendChild(el("button",{cls:"sm",text:"پایین",on:function(){move(a,i,1)}}));
+  b.appendChild(el("button",{cls:"sm p",text:"وارد شد",on:function(){act("/rest/v1/queue?id=eq."+r.id,"PATCH",{entered_at:new Date().toISOString()})}}));
+ }else b.appendChild(el("button",{cls:"sm p",text:"بازگرداندن به صف",on:function(){act("/rest/v1/queue?id=eq."+r.id,"PATCH",{entered_at:null})}}));
+ b.appendChild(el("button",{cls:"sm",text:"ویرایش",on:function(){edit(r,c)}}));
+ if(r.file_path)b.appendChild(el("button",{cls:"sm",text:"فایل",on:function(){openFile(r)}}));
+ b.appendChild(el("button",{cls:"sm d",text:"حذف",on:function(){if(confirm("«"+r.name+"» برای همیشه حذف شود؟"))act("/rest/v1/queue?id=eq."+r.id,"DELETE")}}));
+ c.appendChild(b);return c}
+function opt(v,t,sel){var o=el("option",{value:v,text:t});if(sel)o.selected=true;return o}
+function edit(r,c){
+ if(c.querySelector(".ed"))return;
+ var nm=el("input",{value:r.name}),ph=el("input",{value:r.phone,dir:"ltr"}),dt=el("input",{type:"date",value:r.admission_date||"",dir:"ltr"});
+ var gs=el("select",{},[opt("male","مرد",r.gender==="male"),opt("female","زن",r.gender==="female")]);
+ var ks=el("select",{},[opt("study","تحصیلی",r.kind==="study"),opt("work","کاری",r.kind==="work")]);
+ var er=el("p",{cls:"err"});
+ var f=el("div",{cls:"ed"},[el("label",{text:"نام"}),nm,el("label",{text:"موبایل"}),ph,el("label",{text:"تاریخ پذیرش (برای کاری خالی بماند)"}),dt,el("label",{text:"جنسیت"}),gs,el("label",{text:"نوع درخواست"}),ks,er,
+  el("div",{cls:"acts"},[
+   el("button",{cls:"sm p",text:"ذخیره",on:function(){
+    if(!nm.value.trim()){er.textContent="نام را وارد کنید.";return}
+    if(ks.value==="study"&&!dt.value){er.textContent="برای درخواست تحصیلی تاریخ پذیرش لازم است.";return}
+    act("/rest/v1/queue?id=eq."+r.id,"PATCH",{name:nm.value.trim(),phone:ph.value.trim(),gender:gs.value,kind:ks.value,admission_date:ks.value==="work"?null:(dt.value||null)})}}),
+   el("button",{cls:"sm",text:"انصراف",on:function(){f.remove()}})])]);
+ c.appendChild(f)}
+$("rs").onclick=function(){if(confirm("ترتیب دستی لیست "+LB[cur]+" پاک شود و دوباره بر اساس تاریخ پذیرش مرتب شود؟"))act("/rest/v1/rpc/admin_reset_order","POST",{p_list:cur})};
+document.querySelectorAll("#tb .tab").forEach(function(b){b.onclick=function(){cur=b.dataset.l;render()}});
+if(S)load();
+</script>
+</body>
+</html>
