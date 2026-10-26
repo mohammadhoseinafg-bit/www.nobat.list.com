@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>لیست نوبت مستقل دانشجویان – سفارت ترکیه</title>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -44,6 +47,22 @@ th{color:var(--mute);font-weight:400}
 .ttl{display:flex;align-items:center;gap:10px;margin:0 0 4px}.ttl h1{margin:0}
 .lk{list-style:none;margin:0;padding:0}.lk li{padding:9px 0;border-bottom:1px solid var(--line)}.lk li:last-child{border:0}
 .lk a{color:var(--pri);font-weight:700;text-decoration:none}.lk a:hover,.lk a:focus-visible{text-decoration:underline}.lk span{display:block;color:var(--mute);font-size:.9rem}
+.tabs:not(.sub){flex-wrap:wrap}.tabs:not(.sub) .tab{flex:1 1 30%}
+details{border-top:1px solid var(--line);padding:8px 0}details:first-of-type{border-top:0}
+summary{cursor:pointer;font-weight:700;padding:4px 0}summary:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+details p{margin:6px 0 4px}
+.pts{margin:8px 0 0;padding:0 20px 0 0}.pts li{margin:6px 0}
+.bad{border-color:var(--err)!important;outline:2px solid var(--err);outline-offset:2px}
+.dtb{font:inherit;width:100%;text-align:right;padding:11px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);cursor:pointer}
+.dtb:focus-visible,.cd:focus-visible,.cn:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+.cal{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:6px}
+.chd{display:flex;gap:6px;margin-bottom:8px}.chd select{flex:1 1 0;min-width:0;padding:8px}
+.cn{font:inherit;font-size:1.3rem;width:44px;flex:none;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);cursor:pointer}
+.cgr{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;direction:rtl}
+.cw{text-align:center;color:var(--mute);font-size:.85rem}
+.cd{font:inherit;padding:10px 0;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);cursor:pointer}
+.cd[aria-pressed=true]{background:var(--pri);border-color:var(--pri);color:var(--on);font-weight:700}
+.cd:disabled{opacity:.3;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -57,6 +76,7 @@ th{color:var(--mute);font-weight:400}
 <button class="tab" role="tab" id="t2" aria-selected="false">لیست‌ها</button>
 <button class="tab" role="tab" id="t3" aria-selected="false">پیگیری</button>
 <button class="tab" role="tab" id="t4" aria-selected="false">شفافیت</button>
+<button class="tab" role="tab" id="t5" aria-selected="false">راهنما</button>
 </div>
 
 <div id="p1">
@@ -66,15 +86,21 @@ th{color:var(--mute);font-weight:400}
 </section>
 <section>
 <h2>اطلاعات شما</h2>
+<p class="hint" style="margin:0 0 4px">همه‌ی بخش‌ها الزامی است. اگر چیزی کامل نباشد، ثبت‌نام انجام نمی‌شود و بخش ناقص را به شما نشان می‌دهیم.</p>
 <label>جنسیت</label>
 <div class="seg" id="gs"><button type="button" class="opt" data-v="male" aria-pressed="false">مرد</button><button type="button" class="opt" data-v="female" aria-pressed="false">زن</button></div>
 <label>نوع درخواست</label>
 <div class="seg" id="ks"><button type="button" class="opt" data-v="study" aria-pressed="false">تحصیلی</button><button type="button" class="opt" data-v="work" aria-pressed="false">کاری</button></div>
 <label for="nm">نام و نام خانوادگی</label><input id="nm" autocomplete="name">
 <label for="ph">شماره موبایل</label><input id="ph" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" style="text-align:right">
-<label for="fl" id="fll">فایل پذیرش</label><input id="fl" type="file" accept=".pdf,image/*">
-<div id="dtw"><label for="dt">تاریخ پذیرش (طبق نامه)</label><input id="dt" type="date" dir="ltr" style="text-align:right">
-<p class="hint">تاریخ را همان‌طور که روی نامه آمده وارد کنید. تاریخ‌ها با فایل شما تطبیق داده می‌شوند و موارد نادرست از لیست حذف می‌شوند.</p></div>
+<label for="fl" id="fll">فایل پذیرش (PDF یا عکس)</label><input id="fl" type="file" accept=".pdf,image/*">
+<div id="dtw"><label id="dtl" for="dtb">تاریخ پذیرش (میلادی)</label>
+<button type="button" id="dtb" class="dtb" aria-haspopup="dialog" aria-expanded="false">تاریخ را انتخاب کنید</button>
+<div id="cal" class="cal" role="dialog" aria-label="تقویم" hidden>
+<div class="chd"><button type="button" class="cn" id="cpv" aria-label="ماه قبل">&#8250;</button><select id="cm" aria-label="ماه"></select><select id="cy" aria-label="سال"></select><button type="button" class="cn" id="cnx" aria-label="ماه بعد">&#8249;</button></div>
+<div class="cgr" id="cg"></div>
+</div>
+<p class="hint" id="dth">تاریخ را همان‌طور که روی نامه‌ی پذیرش آمده (میلادی) انتخاب کنید. تاریخ‌ها با فایل شما تطبیق داده می‌شوند و موارد نادرست از لیست حذف می‌شوند.</p></div>
 <p class="err" id="err" role="alert"></p>
 <button class="go" id="reg">ثبت در لیست</button>
 <p class="hint">فایل شما فقط برای بررسی استفاده می‌شود و پس از نهایی‌شدن لیست حذف خواهد شد.</p>
@@ -123,6 +149,56 @@ th{color:var(--mute);font-weight:400}
 <button class="go" id="ms">ارسال</button>
 </section>
 </div>
+<div id="p5" hidden>
+<section>
+<h2>هدف این لیست</h2>
+<p style="margin:0 0 6px">این لیست را دانشجوها ساخته‌اند تا نوبت‌دهی به سفارت منظم و عادلانه شود:</p>
+<ul class="pts">
+<li>دست سودجویانی که نوبت می‌فروشند یا برای نوبت پول می‌گیرند از این کار کوتاه شود.</li>
+<li>رفتن به سفارت ساده‌تر شود و هر کس بداند نوبتش کی می‌رسد.</li>
+<li>لازم نباشد کسی در هوای سرد چند شب پشت درهای سفارت بخوابد یا ساعت‌ها در صف بایستد.</li>
+</ul>
+<p class="hint">این لیست مستقل است و سفارت آن را نمی‌شناسد؛ فقط ترتیب مراجعه‌ی خودمان را منظم می‌کند.</p>
+</section>
+<section>
+<h2>چرا باید نظم را رعایت کنیم؟</h2>
+<p style="margin:0 0 6px">ترتیب این لیست فقط بر اساس تاریخ پذیرش است، نه آشنایی، عجله یا پول. اگر هر کس بخواهد جلو بیفتد، حق کسی که پذیرش قدیمی‌تری دارد از بین می‌رود و اعتماد همه به لیست کم می‌شود. پس:</p>
+<ul class="pts">
+<li>فقط یک‌بار و با اطلاعات درست ثبت‌نام کنید.</li>
+<li>تاریخ پذیرش را همان‌طور که روی نامه آمده وارد کنید. اطلاعات یا فایل نادرست ممکن است باعث حذف ثبت‌نام شود.</li>
+<li>برای جلو افتادن درخواست نکنید و کد پیگیری‌تان را به کسی ندهید.</li>
+</ul>
+</section>
+<section>
+<h2>چرا نباید از ما سوءاستفاده شود؟</h2>
+<p style="margin:0 0 6px">این لیست رایگان است و رایگان می‌ماند. هیچ‌کس حق ندارد برای ثبت‌نام، جلو انداختن یا نگه‌داشتن نوبت از شما پول بگیرد.</p>
+<ul class="pts">
+<li>به هیچ‌کس که در ازای پول نوبت یا جلو افتادن وعده می‌دهد پول ندهید. این کار حق بقیه را ضایع می‌کند و سودجویی را تقویت می‌کند.</li>
+<li>اگر کسی از شما برای نوبت پول خواست یا ادعا کرد می‌تواند نوبتتان را جلو بیندازد، از تب «شفافیت» گزارش دهید.</li>
+</ul>
+</section>
+<section>
+<h2>سؤال‌های پرتکرار</h2>
+<details><summary>برای ثبت‌نام چه چیزی لازم است؟</summary><p>همه‌ی این موارد الزامی است: جنسیت، نوع درخواست، نام و نام خانوادگی، شماره‌ی موبایل، فایل پذیرش (PDF یا عکس) و تاریخ پذیرش. برای درخواست کاری، مدرک کاری (PDF یا عکس) و تاریخ مدرک یا ویزا را به شمسی انتخاب می‌کنید. اگر بخشی کامل نباشد، سایت همان بخش را نشان می‌دهد و ثبت‌نام انجام نمی‌شود.</p></details>
+<details><summary>کد پیگیری چیست؟</summary><p>بعد از ثبت‌نام یک کد به شما داده می‌شود. با این کد و ۴ رقم آخر موبایلتان از تب «پیگیری» وضعیت و جایگاه خود را می‌بینید. کد را ذخیره کنید یا از آن عکس بگیرید.</p></details>
+<details><summary>چرا ثبت‌نام من «در انتظار تأیید» است؟</summary><p>هر ثبت‌نام اول توسط مدیر بررسی می‌شود تا فایل و تاریخ پذیرش درست باشد. بعد از تأیید، نام شما در لیست عمومی نمایش داده می‌شود.</p></details>
+<details><summary>ترتیب نوبت چطور تعیین می‌شود؟</summary><p>بر اساس تاریخ پذیرش (برای درخواست کاری، تاریخ مدرک یا ویزا): تاریخ قدیمی‌تر جلوتر است، حتی اگر دیرتر ثبت‌نام کرده باشد. اگر تاریخ دو نفر یکی باشد، زودتر ثبت‌نام‌کننده جلوتر است. سه لیست جدا داریم: تحصیلی، کاری و بانوان.</p></details>
+<details><summary>تاریخ پذیرشم را اشتباه وارد کردم، چه کنم؟</summary><p>از تب «شفافیت» پیام «اعتراض به ثبت‌نام من» را با کد پیگیری و ۴ رقم آخر موبایلتان بفرستید و مشکل را بنویسید. مدیر بررسی و اصلاح می‌کند.</p></details>
+<details><summary>کد پیگیری‌ام را گم کردم.</summary><p>از تب «شفافیت» یک پیام بفرستید و نام و شماره‌ی موبایلتان را بنویسید تا مدیر کد شما را پیدا کند. فقط برای مدیر دیده می‌شود، مگر خودش آن را عمومی کند، پس نام و شماره‌تان را در پیام عمومی‌شدنی ننویسید.</p></details>
+<details><summary>ثبت‌نام در این لیست نوبت سفارت را تضمین می‌کند؟</summary><p>نه. این لیست مستقل است و سفارت آن را نمی‌شناسد. فقط ترتیب مراجعه‌ی دانشجوها را مشخص می‌کند.</p></details>
+<details><summary>ثبت‌نام هزینه دارد؟</summary><p>نه، کاملاً رایگان است. اگر کسی برای ثبت‌نام یا جابه‌جایی نوبت پول خواست، پرداخت نکنید و گزارش دهید.</p></details>
+<details><summary>فایل پذیرش من چه می‌شود؟</summary><p>فقط برای بررسی تاریخ پذیرش استفاده می‌شود و برای عموم نمایش داده نمی‌شود.</p></details>
+</section>
+<section>
+<h2>نصب روی گوشی</h2>
+<p style="margin:0 0 8px">می‌توانید این سایت را مثل یک برنامه روی صفحه‌ی اصلی گوشی داشته باشید.</p>
+<button class="go" id="inst" type="button" hidden>نصب روی گوشی</button>
+<ul class="pts">
+<li>اندروید (Chrome): منوی سه‌نقطه ← «افزودن به صفحه‌ی اصلی» (Add to Home screen).</li>
+<li>آیفون (Safari): دکمه‌ی اشتراک‌گذاری ← «Add to Home Screen».</li>
+</ul>
+</section>
+</div>
 <section>
 <h2>لینک‌های مفید درباره‌ی ترکیه</h2>
 <ul class="lk">
@@ -144,14 +220,37 @@ var $=function(i){return document.getElementById(i)},mine=null,g=null,k=null,cur
 var LB={study:"تحصیلی",work:"کاری",women:"بانوان"};
 function api(p,o){o=o||{};o.headers=o.headers||{};o.headers.apikey=K;return fetch(U+p,o)}
 function fa(n){return Number(n).toLocaleString("fa-IR")}
+var JB=[-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
+function jdiv(a,b){return~~(a/b)}function jmod(a,b){return a-~~(a/b)*b}
+function jalCal(jy,wl){var bl=JB.length,gy=jy+621,leapJ=-14,jp=JB[0],jm,jump=0,leap,leapG,march,n,i;
+ if(jy<jp||jy>=JB[bl-1])throw new Error("bad year");
+ for(i=1;i<bl;i++){jm=JB[i];jump=jm-jp;if(jy<jm)break;leapJ+=jdiv(jump,33)*8+jdiv(jmod(jump,33),4);jp=jm}
+ n=jy-jp;leapJ+=jdiv(n,33)*8+jdiv(jmod(n,33)+3,4);if(jmod(jump,33)===4&&jump-n===4)leapJ+=1;
+ leapG=jdiv(gy,4)-jdiv((jdiv(gy,100)+1)*3,4)-150;march=20+leapJ-leapG;
+ if(wl)return{gy:gy,march:march};
+ if(jump-n<6)n=n-jump+jdiv(jump+4,33)*33;leap=jmod(jmod(n+1,33)-1,4);if(leap===-1)leap=4;return{leap:leap,gy:gy,march:march}}
+function g2d(gy,gm,gd){var d=jdiv((gy+jdiv(gm-8,6)+100100)*1461,4)+jdiv(153*jmod(gm+9,12)+2,5)+gd-34840408;return d-jdiv(jdiv(gy+100100+jdiv(gm-8,6),100)*3,4)+752}
+function d2g(jdn){var j=4*jdn+139361631;j=j+jdiv(jdiv(4*jdn+183187720,146097)*3,4)*4-3908;var i=jdiv(jmod(j,1461),4)*5+308;
+ var gd=jdiv(jmod(i,153),5)+1,gm=jmod(jdiv(i,153),12)+1,gy=jdiv(j,1461)-100100+jdiv(8-gm,6);return{gy:gy,gm:gm,gd:gd}}
+function j2d(jy,jm,jd){var r=jalCal(jy,true);return g2d(r.gy,3,r.march)+(jm-1)*31-jdiv(jm,7)*(jm-7)+jd-1}
+function d2j(jdn){var gy=d2g(jdn).gy,jy=gy-621,r=jalCal(jy,false),f=g2d(gy,3,r.march),k=jdn-f,jm,jd;
+ if(k>=0){if(k<=185){return{jy:jy,jm:1+jdiv(k,31),jd:jmod(k,31)+1}}k-=186}else{jy-=1;k+=179;if(r.leap===1)k+=1}
+ return{jy:jy,jm:7+jdiv(k,30),jd:jmod(k,30)+1}}
+function jml(jy,jm){return jm<=6?31:jm<=11?30:(jalCal(jy,false).leap===0?30:29)}
+function j2iso(jy,jm,jd){var g=d2g(j2d(jy,jm,jd)),p=function(n){return(n<10?"0":"")+n};return g.gy+"-"+p(g.gm)+"-"+p(g.gd)}
+function iso2j(s){var a=s.slice(0,10).split("-"),j=d2j(g2d(+a[0],+a[1],+a[2]));return j}
+
+function pdg(x){return String(x).replace(/\d/g,function(d){return"۰۱۲۳۴۵۶۷۸۹"[d]})}
+function fj(s){if(!s)return"—";var j=iso2j(String(s)),p=function(n){return(n<10?"0":"")+n};return pdg(j.jy+"/"+p(j.jm)+"/"+p(j.jd))}
+function fdl(r){return r.admission_date?((r.kind==="work"||r.list==="work")?fj(r.admission_date):fd(r.admission_date)):"—"}
 function fd(s){return s?String(s).slice(0,10):"—"}
 function ft(s){if(!s)return"—";var d=new Date(s),p=function(n){return(n<10?"0":"")+n};return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes())}
 function short(n){n=n.trim();var i=n.indexOf(" ");return i>0?n.slice(0,i)+" "+n.slice(n.lastIndexOf(" ")+1).charAt(0)+".":n}
 function pick(box,fn){var bs=$(box).querySelectorAll(".opt");bs.forEach(function(b){b.onclick=function(){bs.forEach(function(x){x.setAttribute("aria-pressed",x===b)});fn(b.dataset.v)}})}
 pick("gs",function(v){g=v});
-pick("ks",function(v){k=v;$("dtw").hidden=v==="work";$("fll").textContent=v==="work"?"مدرک کاری (اختیاری)":"فایل پذیرش"});
-function tab(n){[1,2,3,4].forEach(function(i){$("p"+i).hidden=i!==n;$("t"+i).setAttribute("aria-selected",i===n)});if(n===2)draw();if(n===4)loadPub()}
-$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};$("t3").onclick=function(){tab(3)};$("t4").onclick=function(){tab(4)};
+pick("ks",function(v){k=v;setMode(v);$("fll").textContent=v==="work"?"مدرک کاری (PDF یا عکس)":"فایل پذیرش (PDF یا عکس)"});
+function tab(n){[1,2,3,4,5].forEach(function(i){$("p"+i).hidden=i!==n;$("t"+i).setAttribute("aria-selected",i===n)});if(n===2)draw();if(n===4)loadPub()}
+$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};$("t3").onclick=function(){tab(3)};$("t4").onclick=function(){tab(4)};$("t5").onclick=function(){tab(5)};
 document.querySelectorAll(".sub .tab").forEach(function(b){b.onclick=function(){cur=b.dataset.l;document.querySelectorAll(".sub .tab").forEach(function(x){x.setAttribute("aria-selected",x===b)});draw()}});
 function draw(){
  var tb=$("rows"),em=$("empty"),en=cur==="entered";tb.innerHTML="";
@@ -163,26 +262,33 @@ function draw(){
  api(q).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(a){
   em.textContent=en?"هنوز کسی ثبت نشده است.":"هنوز کسی در این لیست ثبت‌نام نکرده است.";em.hidden=a.length>0;
   a.forEach(function(r){var tr=document.createElement("tr");if(!en&&mine&&mine.l===cur&&r.short_name===mine.s&&r.admission_date===mine.d)tr.className="me";
-   (en?[r.short_name,LB[r.list],fd(String(r.entered_at).slice(0,10))]:[fa(r.pos),r.short_name,fd(r.admission_date),ft(r.registered_at)]).forEach(function(x){var td=document.createElement("td");td.textContent=x;tr.appendChild(td)});tb.appendChild(tr)})
+   (en?[r.short_name,LB[r.list],fd(String(r.entered_at).slice(0,10))]:[fa(r.pos),r.short_name,fdl(r),ft(r.registered_at)]).forEach(function(x){var td=document.createElement("td");td.textContent=x;tr.appendChild(td)});tb.appendChild(tr)})
  }).catch(function(){em.textContent="لیست بارگذاری نشد. اینترنت را بررسی کنید و دوباره تلاش کنید.";em.hidden=false})}
 $("reg").onclick=function(){
- var n=$("nm").value.trim(),p=$("ph").value.replace(/\s/g,""),d=$("dt").value,e=$("err"),f=$("fl").files[0],b=$("reg"),w=k==="work";
- if(!g){e.textContent="جنسیت را انتخاب کنید.";return}
- if(!k){e.textContent="نوع درخواست (تحصیلی یا کاری) را انتخاب کنید.";return}
- if(!n){e.textContent="نام و نام خانوادگی را وارد کنید.";$("nm").focus();return}
- if(p.replace(/\D/g,"").length<10){e.textContent="شماره موبایل را کامل وارد کنید.";$("ph").focus();return}
- if(!w&&!f){e.textContent="فایل پذیرش را انتخاب کنید.";return}
- if(f&&f.size>10*1048576){e.textContent="حجم فایل باید کمتر از ۱۰ مگابایت باشد.";return}
- if(!w&&!d){e.textContent="تاریخ پذیرش را وارد کنید.";$("dt").focus();return}
- if(!w&&new Date(d)>new Date()){e.textContent="تاریخ پذیرش نمی‌تواند در آینده باشد.";return}
+ var n=$("nm").value.trim(),p=$("ph").value.replace(/\s/g,""),d=dval,e=$("err"),f=$("fl").files[0],b=$("reg"),w=k==="work";
+ ["gs","ks","nm","ph","fl","dtb"].forEach(function(x){$(x).classList.remove("bad")});
+ var pn=p.replace(/[۰-۹]/g,function(c){return c.charCodeAt(0)-1776}).replace(/[٠-٩]/g,function(c){return c.charCodeAt(0)-1632}).replace(/\D/g,""),
+  ok=f&&(/^(application\/pdf|image\/(jpeg|png|webp))$/.test(f.type)||(!f.type&&/\.(pdf|jpe?g|png|webp)$/i.test(f.name)));
+ var errs=[
+  [!g,"جنسیت را انتخاب نکرده‌اید.","gs"],
+  [!k,"نوع درخواست (تحصیلی یا کاری) را انتخاب نکرده‌اید.","ks"],
+  [n.length<3,"نام و نام خانوادگی را وارد نکرده‌اید.","nm"],
+  [pn.length<10||pn.length>13,"شماره موبایل را کامل وارد نکرده‌اید.","ph"],
+  [!f,(w?"مدرک کاری":"فایل پذیرش")+" (PDF یا عکس) را انتخاب نکرده‌اید.","fl"],
+  [!!f&&!ok,"فقط فایل PDF یا عکس (JPG، PNG، WEBP) قابل قبول است.","fl"],
+  [!!f&&f.size>10*1048576,"حجم فایل باید کمتر از ۱۰ مگابایت باشد.","fl"],
+  [!d,w?"تاریخ مدرک یا ویزای کاری (شمسی) را کامل و معتبر انتخاب نکرده‌اید.":"تاریخ پذیرش را وارد نکرده‌اید.","dtb"],
+  [!!d&&new Date(d)>new Date(),"تاریخ نمی‌تواند در آینده باشد.","dtb"]
+ ];
+ for(var ei=0;ei<errs.length;ei++){if(errs[ei][0]){var fe=$(errs[ei][2]);e.textContent=errs[ei][1];fe.classList.add("bad");fe.scrollIntoView({block:"center"});if(fe.tagName!=="DIV")fe.focus();return}}
  e.textContent="";b.disabled=true;b.textContent="در حال ثبت…";
  var path=null,up=Promise.resolve();
  if(f){var ext=(f.name.match(/\.[a-z0-9]+$/i)||[""])[0].toLowerCase();
   path=(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+""+Math.random().toString(36).slice(2))+ext;
   up=api("/storage/v1/object/admissions/"+path,{method:"POST",headers:{"Content-Type":f.type||"application/octet-stream"},body:f}).then(function(r){if(!r.ok)throw 1})}
- up.then(function(){return api("/rest/v1/rpc/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({p_name:n,p_phone:p,p_date:w?null:d,p_file:path,p_gender:g,p_kind:k})})})
+ up.then(function(){return api("/rest/v1/rpc/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({p_name:n,p_phone:p,p_date:d,p_file:path,p_gender:g,p_kind:k})})})
  .then(function(r){if(!r.ok)return r.text().then(function(t){throw t.indexOf("duplicate")>-1?4:t.indexOf("rate limit")>-1?5:2});return r.json()})
- .then(function(j){var pos=j.pos,l=g==="female"?"women":k;mine={l:l,s:short(n),d:w?null:d};var o=$("done");o.hidden=false;
+ .then(function(j){var pos=j.pos,l=g==="female"?"women":k;mine={l:l,s:short(n),d:d};var o=$("done");o.hidden=false;
   var m=pos===0?"<b>ثبت‌نام شما دریافت شد.</b><br>بعد از بررسی فایل توسط مدیر، نام شما در لیست «"+LB[l]+"» نمایش داده می‌شود.":"<b>ثبت شد.</b><br>لیست شما: "+LB[l]+"<br>جایگاه فعلی شما: "+fa(pos);
   o.innerHTML=m+"<br><br>کد پیگیری شما:<br><b dir='ltr' style='font-size:1.4rem;letter-spacing:1px'>"+j.code+"</b><br><button class='go' id='cp' type='button' style='margin-top:8px'>کپی کد</button><p class='hint'>این کد را ذخیره کنید یا از صفحه عکس بگیرید. با کد و ۴ رقم آخر موبایل از تب «پیگیری» وضعیت خود را ببینید. لطفاً دوباره ثبت‌نام نکنید.</p>";
   $("cp").onclick=function(){try{navigator.clipboard.writeText(j.code);$("cp").textContent="کپی شد"}catch(x){}};
@@ -225,6 +331,60 @@ function loadPub(){
    if(x.reply){var r=document.createElement("div");r.style.cssText="margin-top:4px;color:var(--pri)";r.textContent="پاسخ: "+x.reply;d.appendChild(r)}
    l.appendChild(d)})
  }).catch(function(){})}
+
+var dip=null;
+window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dip=e;$("inst").hidden=false});
+$("inst").onclick=function(){if(!dip)return;dip.prompt();dip=null;$("inst").hidden=true};
+
+var JMN=["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+
+var dval="",CAL={mode:"g",y:0,m:0,init:0};
+var GM=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var WDN=["ش","ی","د","س","چ","پ","ج"];
+function p2(n){return(n<10?"0":"")+n}
+function todayISO(){var t=new Date();return t.getFullYear()+"-"+p2(t.getMonth()+1)+"-"+p2(t.getDate())}
+function wdOf(iso){var a=iso.split("-");return(new Date(+a[0],+a[1]-1,+a[2]).getDay()+1)%7}
+function calCur(){var t=todayISO();if(CAL.mode==="j"){var j=iso2j(t);return{y:j.jy,m:j.jm}}var a=t.split("-");return{y:+a[0],m:+a[1]}}
+function monthInfo(y,m){
+ if(CAL.mode==="j")return{len:jml(y,m),first:wdOf(j2iso(y,m,1)),iso:function(d){return j2iso(y,m,d)}};
+ return{len:new Date(y,m,0).getDate(),first:wdOf(y+"-"+p2(m)+"-01"),iso:function(d){return y+"-"+p2(m)+"-"+p2(d)}}}
+function dlabel(iso){return CAL.mode==="j"?fj(iso):iso}
+function opt(sel,v,t){var o=document.createElement("option");o.value=v;o.textContent=t;sel.appendChild(o)}
+function setMode(v){
+ var m=v==="work"?"j":"g";
+ if(CAL.mode===m&&CAL.init)return;
+ CAL.mode=m;CAL.init=1;dval="";$("cal").hidden=true;$("dtb").setAttribute("aria-expanded","false");
+ $("dtb").textContent="تاریخ را انتخاب کنید";$("dtb").classList.remove("bad");
+ $("dtl").textContent=m==="j"?"تاریخ مدرک یا ویزای کاری (شمسی)":"تاریخ پذیرش (میلادی)";
+ $("dth").textContent=m==="j"?"تاریخ را همان‌طور که روی مدرک آمده (به شمسی) انتخاب کنید.":"تاریخ را همان‌طور که روی نامه‌ی پذیرش آمده (میلادی) انتخاب کنید. تاریخ‌ها با فایل شما تطبیق داده می‌شوند و موارد نادرست از لیست حذف می‌شوند."}
+function drawCal(){
+ var c=calCur(),ys=$("cy"),ms=$("cm"),g=$("cg"),j=CAL.mode==="j";
+ ys.innerHTML="";for(var y=c.y;y>=c.y-12;y--)opt(ys,y,j?pdg(y):y);
+ ms.innerHTML="";(j?JMN:GM).forEach(function(n,i){opt(ms,i+1,n)});
+ ys.value=CAL.y;ms.value=CAL.m;
+ var info=monthInfo(CAL.y,CAL.m),today=todayISO();g.innerHTML="";
+ WDN.forEach(function(w){var s=document.createElement("span");s.className="cw";s.textContent=w;g.appendChild(s)});
+ for(var i=0;i<info.first;i++)g.appendChild(document.createElement("span"));
+ for(var d=1;d<=info.len;d++)(function(d){
+  var iso=info.iso(d),b=document.createElement("button");b.type="button";b.className="cd";b.textContent=j?pdg(d):d;
+  b.setAttribute("aria-pressed",iso===dval);b.disabled=iso>today;
+  b.onclick=function(){dval=iso;$("dtb").textContent=dlabel(iso);$("dtb").classList.remove("bad");$("cal").hidden=true;$("dtb").setAttribute("aria-expanded","false");$("dtb").focus()};
+  g.appendChild(b)})(d)}
+function navCal(dm){
+ var y=CAL.y,m=CAL.m+dm,c=calCur();
+ if(m<1){m=12;y--}if(m>12){m=1;y++}
+ if(y>c.y||(y===c.y&&m>c.m)||y<c.y-12)return;
+ CAL.y=y;CAL.m=m;drawCal()}
+$("dtb").onclick=function(){
+ var o=$("cal").hidden;
+ if(o){var c=calCur();if(dval){if(CAL.mode==="j"){var j=iso2j(dval);CAL.y=j.jy;CAL.m=j.jm}else{var a=dval.split("-");CAL.y=+a[0];CAL.m=+a[1]}}else{CAL.y=c.y;CAL.m=c.m}drawCal()}
+ $("cal").hidden=!o;$("dtb").setAttribute("aria-expanded",String(o))};
+$("cpv").onclick=function(){navCal(-1)};$("cnx").onclick=function(){navCal(1)};
+$("cy").onchange=function(){var c=calCur(),y=+$("cy").value,m=CAL.m;if(y===c.y&&m>c.m)m=c.m;CAL.y=y;CAL.m=m;drawCal()};
+$("cm").onchange=function(){var c=calCur(),m=+$("cm").value;if(CAL.y===c.y&&m>c.m)m=c.m;CAL.m=m;drawCal()};
+document.addEventListener("click",function(e){if(!$("cal").hidden&&!$("dtw").contains(e.target)){$("cal").hidden=true;$("dtb").setAttribute("aria-expanded","false")}});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("cal").hidden){$("cal").hidden=true;$("dtb").setAttribute("aria-expanded","false");$("dtb").focus()}});
+setMode("study");
 </script>
 </body>
 </html>
